@@ -25,7 +25,7 @@ public class FlutterCgmPlugin: NSObject, FlutterPlugin {
     }
     
     private func activateCGM(_ result: @escaping FlutterResult) {
-        monitor.activateCGM { reading in result(reading.toData()) }
+        monitor.activateCGM { reading in DispatchQueue.main.async { result(reading.toData()) } }
     }
     
     private func disposeNFC(_ result: @escaping FlutterResult) {
@@ -33,6 +33,6 @@ public class FlutterCgmPlugin: NSObject, FlutterPlugin {
     }
     
     private func scanCGM(_ result: @escaping FlutterResult) {
-        monitor.scanCGM { reading in result(reading.toData()) }
+        monitor.scanCGM { reading in DispatchQueue.main.async { result(reading.toData()) } }
     }
 }
