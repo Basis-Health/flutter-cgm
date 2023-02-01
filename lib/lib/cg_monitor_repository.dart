@@ -6,7 +6,8 @@ class CGMonitor implements CGMonitorInterface {
 
   @override
   Future<CGMReading> activateCGM() async {
-    return await _channel.invokeMethod(CGMonitorMethodCall.activateCGM.name);
+    final response = await _channel.invokeMethod(CGMonitorMethodCall.activateCGM.name);
+    return CGMReading.fromJson(response);
   }
 
   @override
@@ -16,6 +17,7 @@ class CGMonitor implements CGMonitorInterface {
 
   @override
   Future<CGMReading> scanCGM() async {
-    return await _channel.invokeMethod(CGMonitorMethodCall.scanCGM.name);
+    final response = await _channel.invokeMethod(CGMonitorMethodCall.scanCGM.name);
+    return CGMReading.fromJson(response);
   }
 }
