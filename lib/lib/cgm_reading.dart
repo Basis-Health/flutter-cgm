@@ -7,8 +7,8 @@ class CGMReading {
   final CGMState state;
   final String raw;
   final String patchUID;
-  final String? history;
-  final String? trend;
+  final List<int> history;
+  final List<int> trend;
   final int minutesSinceStart;
 
   CGMReading({
@@ -16,8 +16,8 @@ class CGMReading {
     required this.state,
     required this.raw,
     required this.patchUID,
-    this.history,
-    this.trend,
+    required this.history,
+    required this.trend,
     required this.minutesSinceStart,
   });
 
