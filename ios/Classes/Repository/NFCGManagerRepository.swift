@@ -25,7 +25,14 @@ class CGMonitor: CGMonitorInterface {
               var rawStr = String("\(reading)")
               let uid = self.dataToJson(value: self.getDataFrom(from: rawStr, seperator: "UID: ", expectedLength: 23))
               let patchUID = self.dataToJson(value: self.getDataFrom(from: rawStr, seperator: "Patch Info: ", expectedLength: 17))
-              completion(CGMReading(uid: uid, state: .new, raw: rawStr, patchUID: patchUID))
+              let reading = CGMReading(
+                uid: uid,
+                state: .new,
+                raw: rawStr,
+                patchUID: patchUID,
+                minutesSinceStart: reading.getMinutesSinceStart()
+              )
+              completion(reading)
               self.disposeActivationSubscription()
           }
     }
@@ -33,7 +40,7 @@ class CGMonitor: CGMonitorInterface {
     func scanCGM(completion: @escaping (CGMReading) -> Void) {
         subscriptionReading = nfcManager.perform(.readHistory)
             .sink { reading in
-                let sensorData = (reading as Reading).sensorData
+                let sensorData = reading.sensorData
                 var rawStr = String("\(reading)")
                 let uid = self.dataToJson(value: self.getDataFrom(from: rawStr, seperator: "UID: ", expectedLength: 23))
                 let patchUID = self.dataToJson(value: self.getDataFrom(from: rawStr, seperator: "Patch Info: ", expectedLength: 17))
@@ -41,7 +48,13 @@ class CGMonitor: CGMonitorInterface {
                 // if reading contains string 'Tag state: new' and we don't have an activation subscription yet
                 // we want to try and activate the sensor with the .activate command
                 let state = CGMState.allCases.first(where: { rawStr.contains($0.tagState) }) ?? .unknown
-                var reading = CGMReading(uid: uid, state: state, raw: rawStr, patchUID: patchUID)
+                var reading = CGMReading(
+                    uid: uid,
+                    state: state,
+                    raw: rawStr,
+                    patchUID: patchUID,
+                    minutesSinceStart: reading.getMinutesSinceStart()
+                )
                 if state == .operational, let sensorData = sensorData {
                     reading.history = sensorData.glucoseTrend
                     reading.trend = sensorData.glucoseTrend
@@ -83,5 +96,23 @@ class CGMonitor: CGMonitorInterface {
     private func disposeDataSubscription() {
         subscriptionReading?.cancel()
         subscriptionReading = nil
+    }
+}
+
+extension Reading {
+    func getMinutesSinceStart() -> Int {
+        let key = "minutesSinceStart: "
+        let rawStr = String("\(self)")
+        if let sensorData = sensorData {
+            return sensorData.minutesSinceStart
+        } else if rawStr.contains(key) {
+            let numStr = rawStr.components(separatedBy: key)
+                .last?
+                .components(separatedBy: .whitespacesAndNewlines)
+                .first
+            return Int(numStr ?? "") ?? 0
+        } else {
+            return 0
+        }
     }
 }
